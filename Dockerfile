@@ -12,6 +12,8 @@ RUN set -ex; \
 	mkdir -p "$postgresHome"; \
 	chown -R postgres:postgres "$postgresHome"
 
+RUN echo "@testing http://nl.alpinelinux.org/alpine/edge/testing" >> /etc/apk/repositories
+
 # make the "en_US.UTF-8" locale so postgres will be utf-8 enabled by default
 # alpine doesn't require explicit locale-file generation
 ENV LANG en_US.utf8
@@ -25,12 +27,14 @@ RUN apk add --no-cache postgresql \
 	postgresql-plperl-contrib \
 	tzdata \
 	su-exec \
+    pg_cron@testing \
 	bash
 
 RUN rm -rf \
 	/usr/share/doc \
 	/usr/share/man 
 
+RUN echo "shared_preload_libraries = 'pg_cron'" >> /usr/share/postgresql/postgresql.conf.sample
 RUN sed -ri "s!^#?(listen_addresses)\s*=\s*\S+.*!\1 = '*'!" /usr/share/postgresql/postgresql.conf.sample
 
 RUN mkdir -p /var/run/postgresql && chown -R postgres:postgres /var/run/postgresql && chmod 2777 /var/run/postgresql
