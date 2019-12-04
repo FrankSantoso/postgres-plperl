@@ -1,9 +1,9 @@
 # vim:set ft=dockerfile:
-FROM alpine:edge
+FROM alpine:3.10
 
 RUN apk add --no-cache bash
-RUN addgroup -g 70 -S postgres
-RUN adduser -h /var/lib/postgresql -S -D -H -u 70 -s /bin/bash -G postgres postgres
+#RUN addgroup -g 70 -S postgres
+#RUN adduser -h /var/lib/postgresql -S -D -H -u 70 -s /bin/bash -G postgres postgres
 
 RUN set -ex; \
 	postgresHome="$(getent passwd postgres)"; \
@@ -19,6 +19,7 @@ RUN echo "@testing http://nl.alpinelinux.org/alpine/edge/testing" >> /etc/apk/re
 ENV LANG en_US.utf8
 
 RUN mkdir /docker-entrypoint-initdb.d
+COPY *.sh /docker-entrypoint-initdb.d/
 
 RUN apk add --no-cache postgresql \
 	postgresql-contrib \
@@ -34,7 +35,6 @@ RUN rm -rf \
 	/usr/share/doc \
 	/usr/share/man 
 
-RUN echo "shared_preload_libraries = 'pg_cron'" >> /usr/share/postgresql/postgresql.conf.sample
 RUN sed -ri "s!^#?(listen_addresses)\s*=\s*\S+.*!\1 = '*'!" /usr/share/postgresql/postgresql.conf.sample
 
 RUN mkdir -p /var/run/postgresql && chown -R postgres:postgres /var/run/postgresql && chmod 2777 /var/run/postgresql
